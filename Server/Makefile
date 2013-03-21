@@ -1,10 +1,10 @@
-TARGET = PriusController_server
+TARGET = Andorive_server
 CC = gcc
 
-$(TARGET) : PriusController_server.o 
-	$(CC) -o $@ PriusController_server.o 
+$(TARGET) : Andorive_server.o 
+	$(CC) -o $@ Andorive_server.o 
 
-server.o : PriusController_server.c
+server.o : Andorive_server.c
 	$(CC) -c $? 
 
-clean:;	rm -f PriusController_server.o PriusController_server
+clean:;	rm -f Andorive_server.o Andorive_server
