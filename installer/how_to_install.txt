@@ -1,2 +1,4 @@
 <How_to_install>
 Please run this file in Android.
+
+インストールして頂くのは、Andorive.apkです。

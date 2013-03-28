@@ -77,10 +77,6 @@ int getSensorValue(){
 		printf("ERROR: can not recieve message\n");
 		return -1;
 	}
-	slot_steering(sensorInfo[0]);
-	slot_brake(sensorInfo[2]);
-	slot_accel(sensorInfo[1]);
-
 
 	printf("pitch: %d, accelerator: %d, brake %d, gearNum: %d\n", sensorInfo[0], sensorInfo[1], sensorInfo[2], sensorInfo[3]);
 
@@ -93,7 +89,6 @@ int getSensorValue(){
 	 */
 
 	if(sensorInfo[1] == 999 && sensorInfo[2] == 999){
-		slot_stop();
 		printf("STOP Andorive!!!\n");
 		if(close(sock0)<0){
 			printf("ERROR: can not close sock0\n");
