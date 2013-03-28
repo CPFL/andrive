@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -22,15 +23,13 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.andorive.R;
-
 public class GetSensorValues extends Activity implements OnTouchListener, SensorEventListener {
 	public String address;
 	public String port;
 	public int port_number;
 
 	private Spinner gear_boxes;
-	private Button button1, button2;
+	private Button button1, button2, stop;
 
 	private final static int WC=LinearLayout.LayoutParams.WRAP_CONTENT;
 	private final static float FILTERING=0.1f;
@@ -54,6 +53,9 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 	 * */
 	private float accelerator, brake;
 	private float pitch;
+	private int gearNum = 2;
+
+	String message;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +82,9 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		button2 = (Button)this.findViewById(R.id.button2);
 		button2.setOnTouchListener(this);
 
+		stop = (Button)this.findViewById(R.id.button3);
+		stop.setOnTouchListener(this);
+
 		sensorManager=(SensorManager)getSystemService(
 				Context.SENSOR_SERVICE);
 
@@ -88,6 +93,7 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		if (list.size()>0) accelerometer=list.get(0);
 		list=sensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
 		if (list.size()>0) orientation=list.get(0);
+
 
 		/*
 		 * ギアボックス
@@ -102,6 +108,17 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		spinner.setAdapter(adapter);
 		spinner.setSelection(2);
 
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+				Spinner spinner = (Spinner) parent;
+				gearNum = spinner.getSelectedItemPosition();
+				Log.v("GearNumber", "gearNum:" + gearNum);
+			}
+			@Override
+			public void onNothingSelected(AdapterView<?> parent) {
+			}
+		});
 
 		//プログレスバー
 		progressBar1 = (ProgressBar) findViewById(R.id.progressBar1);
@@ -172,7 +189,10 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 				progressBar2.setProgress(0);
 			}
 		}
-		Log.d("accelerator+brake", "a:" + accelerator + "b:" + brake);
+		else if(v == stop){
+			accelerator = 999;
+			brake = 999;
+		}
 		return true;
 	}
 
@@ -210,8 +230,11 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 				"\nロール:"  +values[5];
 		pitchText.setText("pitch" + values[4]);
 		pitch = values[4];
-		GetSensorNative.sendSensorValue((int)pitch , (int)accelerator, (int)brake);
-		Log.v("XXXXXXXXXXXXXXXXXXXX", "pitch: " + (int)values[4] + "roll: " + (int)values[3]);
+		//Log.v("Signal", "before sendSensorValue");
+
+		GetSensorNative.sendSensorValue((int)pitch , (int)accelerator, (int)brake, (int)gearNum);
+		GetSensorNative.getSignal();
+		//Log.v("Signal", "after getSignal");
 
 	}
 

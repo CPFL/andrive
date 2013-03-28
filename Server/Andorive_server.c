@@ -4,24 +4,45 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <sys/time.h>
+
 
 void getConnect();
 int getSensorValue();
+int sendSignal();
 
 int sock_num;
 int sock0;
 
+int pitch;
+int accelerator;
+int brake;
+int gearNum;
+
 int main(void){
+	int count=0;
+	struct timeval start_timeval, end_timeval;
+	double sec_timeofday;
 
 	//get connect to android
 	getConnect();
 	printf("get connect.\n");
-	while(1){
+	
+	gettimeofday( &start_timeval, NULL );
+	while(count < 100000){
+		//printf("count: %d\n", count);
 		//get value of sensor from android	
 		if(getSensorValue() == -1)
 			break;
+		if(sendSignal() == -1)
+			break;
+		count++;
 	}
+	gettimeofday( &end_timeval, NULL );
+	sec_timeofday = (end_timeval.tv_sec - start_timeval.tv_sec)
+			+ (end_timeval.tv_usec - start_timeval.tv_usec) / 1000000.0;
 
+	printf("%f\n",sec_timeofday);
 	return 0;
 }
 
@@ -51,24 +72,49 @@ void getConnect(void){
 }
 
 int getSensorValue(){
-	int pitch = 0;
-	int roll = 0;
+	int sensorInfo[4];
+	if(recv(sock_num, &sensorInfo, 16, 0) == -1){
+		printf("ERROR: can not recieve message\n");
+		return -1;
+	}
+	slot_steering(sensorInfo[0]);
+	slot_brake(sensorInfo[2]);
+	slot_accel(sensorInfo[1]);
 
-	if(recv(sock_num, &pitch, 4, 0) == -1){
-		printf("ERROR: can not recieve pitch info\n");
-		return -1;
-	}
 
-	if(recv(sock_num, &roll, 4, 0) == -1){
-		printf("ERROR: can not recieve roll info\n");
+	printf("pitch: %d, accelerator: %d, brake %d, gearNum: %d\n", sensorInfo[0], sensorInfo[1], sensorInfo[2], sensorInfo[3]);
+
+	/*
+	 * ギアボックス
+	 * B:0演じブレーキ強
+	 * R:1後退
+	 * N:2ニュートラル
+	 * D:3ドライブ
+	 */
+
+	if(sensorInfo[1] == 999 && sensorInfo[2] == 999){
+		slot_stop();
+		printf("STOP Andorive!!!\n");
+		if(close(sock0)<0){
+			printf("ERROR: can not close sock0\n");
+			return -1;
+		}
+		if(close(sock_num)<0){
+			printf("ERROR: can not close sock_num\n");
+			return -1;
+		}
+		return -1;
+	}	
+
+	return 0;
+}
+
+int sendSignal(){
+	int signal = 0;
+
+	if(send(sock_num, &signal, 4, 0) == -1){
+		printf("ERROR: can not send signal\n");
 		return -1;
 	}
-	printf("pitch: %d\nroll: %d\n", pitch, roll);
-	
-	if(pitch == 900 && roll == 900){
-		printf("Program stop.\n");
-		return -1;
-	}
-	
 	return 0;
 }

@@ -34,7 +34,6 @@ JNIEXPORT void JNICALL Java_com_andorive_GetSensorNative_connectServer(JNIEnv * 
 	  //server.sin_addr.s_addr = inet_addr("192.168.2.226");
 	  server.sin_addr.s_addr = inet_addr(address_number);
 
-
 	  /* connect to server */
 	  connect(sock, (struct sockaddr *)&server, sizeof(server));
 }
@@ -46,14 +45,29 @@ JNIEXPORT void JNICALL Java_com_andorive_GetSensorNative_closeConnect(JNIEnv * e
 }
 
 
-JNIEXPORT void JNICALL Java_com_andorive_GetSensorNative_sendSensorValue(JNIEnv * env,jobject thiz, jint pitch, jint accelerator, jint brake){
+JNIEXPORT void JNICALL Java_com_andorive_GetSensorNative_sendSensorValue(JNIEnv * env,jobject thiz, jint pitch, jint accelerator, jint brake, jint gearNum){
 
 	//float* values_data = (*env)->GetPrimitiveArrayCritical(env, values, NULL);
 
-	send(sock, &pitch, 4, 0);
-	send(sock, &accelerator, 4, 0);
-	send(sock, &brake, 4, 0);
+	int sensorInfo[4];
+
+	sensorInfo[0] = pitch;
+	sensorInfo[1] = accelerator;
+	sensorInfo[2] = brake;
+	sensorInfo[3] = gearNum;
+
+	send(sock, &sensorInfo, 16, 0);
+
+//	send(sock, &pitch, 4, 0);
+//	send(sock, &accelerator, 4, 0);
+//	send(sock, &brake, 4, 0);
+//	send(sock, &gearNum, 4, 0);
 
 	//(*env)->ReleasePrimitiveArrayCritical(env, values, values_data, 0);
 }
 
+JNIEXPORT void JNICALL Java_com_andorive_GetSensorNative_getSignal(JNIEnv * env){
+	int signal;
+	recv(sock, &signal, 4, 0);
+
+}
