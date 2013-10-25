@@ -13,10 +13,11 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
+import android.widget.LinearLayout;
 
 import com.andrive.R;
 
-public class PitchHandle extends FrameLayout {
+public class PitchHandle extends LinearLayout {
 	private final Context _context;
 	private ImageView pitchRing;
 	private Bitmap pitchBitmap;
@@ -52,8 +53,8 @@ public class PitchHandle extends FrameLayout {
 		prepareImages();
 		this.addView(pitchRing);
 		
-		this.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, 
-				LayoutParams.MATCH_PARENT, Gravity.CENTER));
+		this.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, 
+				LayoutParams.WRAP_CONTENT));
 				
 		this.setWillNotDraw(false);
     }
@@ -62,8 +63,8 @@ public class PitchHandle extends FrameLayout {
     	pitchRing = new ImageView(_context);
 		pitchBitmap = BitmapFactory.decodeResource(_context.getResources(), R.drawable.pitch_ring);
 		
-		pitchRing.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, 
-				LayoutParams.MATCH_PARENT, Gravity.CENTER));
+		pitchRing.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, 
+				LayoutParams.WRAP_CONTENT));
 		pitchRing.setImageBitmap(pitchBitmap);
 		
 		

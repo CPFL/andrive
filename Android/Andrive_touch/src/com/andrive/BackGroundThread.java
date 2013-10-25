@@ -16,13 +16,6 @@ public class BackGroundThread extends Thread{
 		while(threadFlag){
 			log = GetSensorNative.getPhoto();
 			Log.v("BackGroundThread","run + " + log);
-
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-				// TODO é©ìÆê∂ê¨Ç≥ÇÍÇΩ catch ÉuÉçÉbÉN
-				e.printStackTrace();
-			}
 			OverlayedPreviewView.drawView.setPreview();
 		}
 	}

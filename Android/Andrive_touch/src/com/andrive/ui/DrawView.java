@@ -105,8 +105,6 @@ public class DrawView extends SurfaceView implements Callback {
 		mHandler.post(new Runnable(){
 			@Override
 			public void run() {
-				Log.v("test","tset");
-
 				invalidate();		//to update the display
 			}
 		});

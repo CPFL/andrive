@@ -11,11 +11,13 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
@@ -24,9 +26,9 @@ import com.andrive.ui.OverlayedPreviewView;
 import com.andrive.ui.PitchHandle;
 
 public class GetSensorValues extends Activity implements OnTouchListener, SensorEventListener {
-	public String address;
-	public String port;
-	public int port_number;
+	public String addressOfSignal, addressOfPicture;
+	public String portOfSignalText, portOfPictureText;
+	public int portOfSignal, portOfPicture;
 
 	private Button speedButton, sterringButton;
 
@@ -56,11 +58,11 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 	// camera preview と overlay
 	private OverlayedPreviewView overrayedPreviewView;
 
-	// remember display size (in Pixel)
-	private int displayHeight;
-
 	// 画像受信スレッド
 	BackGroundThread backGroundThread;
+
+	// Displayサイズ
+	int displayWidth, displayHeight;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,23 +70,51 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_main_ui);
 
+		// ウィンドウマネージャのインスタンス取得
+		WindowManager wm = (WindowManager)getSystemService(WINDOW_SERVICE);
+		// ディスプレイのインスタンス生成
+		Display disp = wm.getDefaultDisplay();
+		displayWidth = disp.getWidth();
+		displayHeight = disp.getHeight() - getStatusBarHeight();
+		Log.v("Display", "Width = " + disp.getWidth() + ", Height = " + (disp.getHeight() - getStatusBarHeight()) );
+
 		//パラメータの取得
-		address = getIntent().getExtras().getString("address");
-		port = getIntent().getExtras().getString("port");
-		if(address.length() == 0){
+		addressOfSignal = getIntent().getExtras().getString("addressOfSignal");
+		addressOfPicture = getIntent().getExtras().getString("addressOfPicture");
+
+		portOfSignalText = getIntent().getExtras().getString("portOfSignal");
+		portOfPictureText = getIntent().getExtras().getString("portOfPicture");
+
+		if(addressOfSignal.length() == 0){
 			//address = "133.6.204.151";
-			address = "192.168.2.227";
+			addressOfSignal = "192.168.2.227";
 			//address = "192.168.24.52";
 			//			address = "172.24.15.51";
 			//			address = "192.168.11.3";
 			//			address = "192.168.5.48";
 			//			address = "192.168.1.157";
 		}
-		if(port.length() == 0){ 
-			port = "12335";
+		if(addressOfPicture.length() == 0){
+			//address = "133.6.204.151";
+			addressOfPicture = "192.168.2.227";
+			//address = "192.168.24.52";
+			//			address = "172.24.15.51";
+			//			address = "192.168.11.3";
+			//			address = "192.168.5.48";
+			//			address = "192.168.1.157";
 		}
-		port_number = Integer.parseInt(port);
-		Log.v("get sensor","IP Addr = " + address + ", Port = " + port);
+
+		if(portOfSignalText.length() == 0){ 
+			portOfSignalText = "12335";
+		}
+		if(addressOfPicture.length() == 0){ 
+			addressOfPicture = "12336";
+		}
+
+		portOfSignal = Integer.parseInt(portOfSignalText);
+		Log.v("Andrive_signal","IP Addr = " + addressOfSignal + ", Port = " + portOfSignal);
+		portOfPicture = Integer.parseInt(portOfPictureText);
+		Log.v("Andrive_picture","IP Addr = " + addressOfPicture + ", Port = " + portOfPicture);
 
 		speedButton = (Button)this.findViewById(R.id.speed_bar);
 		speedButton.setOnTouchListener(this);
@@ -113,23 +143,19 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 
 		//ピッチ、ロー表示
 		pitchRing = (PitchHandle)findViewById(R.id.main_pitch_ring);
-
 		overrayedPreviewView = (OverlayedPreviewView)findViewById(R.id.main_overrayed_preview);
 
 
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		displayHeight = displaymetrics.heightPixels - getStatusBarHeight();
-
-
 		//サーバへ接続
-		GetSensorNative.connectServer(address, port_number);
-		GetSensorNative.connectServer(address, port_number + 1);
+		GetSensorNative.connectServer(addressOfSignal, portOfSignal);
+		//GetSensorNative.connectServer(addressOfPicture, portOfPicture);
 
 		//画像受信スレッド
 		backGroundThread = new BackGroundThread();
 		backGroundThread.setFlag(true);
-		backGroundThread.start();
+		//backGroundThread.start();
+
+		pitch = 0; 
 
 	}
 
@@ -174,24 +200,34 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		else if(v == sterringButton){
 			if(event.getAction() == MotionEvent.ACTION_DOWN) {
 				// 指がタッチした時の処理を記述
-				sterring = event.getX() / 1440 * 100 - 50;
-				Log.v("sterring", "" + sterring);
-				pitchRing.rotate(-sterring*3);
-				makePacket(2);				
+				sterring = (float) (event.getX() / (displayWidth * 0.77) * 100 - 50);
 			}
 			else if(event.getAction() == MotionEvent.ACTION_MOVE) {
 				// 指がスライドした時の処理を記述
-				sterring = event.getX() / 1440 * 100 - 50;
-				Log.v("sterring", "" + sterring);
-				pitchRing.rotate(-sterring*3);
-				makePacket(2);
+				sterring = (float) (event.getX() / (displayWidth * 0.77) * 100 - 50);
+				Log.v("pitch", "" + (sterring/10) * (sterring/10) / 10);
+
 			}
 			else {
 				// タッチした指が離れた時の処理を記述
 				sterring = 0;
-				pitchRing.rotate(0);
-				makePacket(2);
 			}
+			
+			if(sterring > 0)
+				pitch += (sterring/10) * (sterring/10) / 10;
+			else if(sterring < 0)
+				pitch -= (sterring/10) * (sterring/10) / 10;
+			
+			Log.v("pitch", "" + (sterring/10) * (sterring/10) / 10);
+			
+			if(pitch > 100)
+				pitch = 100;
+			else if(pitch < -100)
+				pitch = -100;
+			
+			pitchRing.rotate(-(float)(pitch * 1.6));	
+			//Log.v("pitch", "" + pitch);
+			makePacket(2);				
 		}
 		return true;
 	}
@@ -204,12 +240,12 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 				progressBar2.setProgress(0);
 				if(accelerator > 100)
 					accelerator = 100;
-				GetSensorNative.sendSensorValue(sterring * 2, accelerator, 0, overrayedPreviewView.getGearInNumber());
+				GetSensorNative.sendSensorValue(pitch, accelerator, 0, overrayedPreviewView.getGearInNumber());
 			}
 			else{
 				progressBar1.setProgress(0);
 				progressBar2.setProgress(-(int)accelerator);
-				GetSensorNative.sendSensorValue(sterring * 2, 0, -accelerator, overrayedPreviewView.getGearInNumber());
+				GetSensorNative.sendSensorValue(pitch, 0, -accelerator, overrayedPreviewView.getGearInNumber());
 			}
 			break;
 		case 2:
@@ -218,12 +254,12 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 				progressBar2.setProgress(0);
 				if(sterring > 50)
 					sterring = 50;
-				GetSensorNative.sendSensorValue(sterring * 2, accelerator, 0, overrayedPreviewView.getGearInNumber());
+				GetSensorNative.sendSensorValue(pitch, accelerator, 0, overrayedPreviewView.getGearInNumber());
 			}
 			else{
 				progressBar1.setProgress(0);
 				progressBar2.setProgress(-(int)accelerator);
-				GetSensorNative.sendSensorValue(sterring * 2, 0, -accelerator, overrayedPreviewView.getGearInNumber());
+				GetSensorNative.sendSensorValue(pitch, 0, -accelerator, overrayedPreviewView.getGearInNumber());
 			}
 			break;
 		}
@@ -280,7 +316,6 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 
 		//GetSensorNative.getSignal();
 		//Log.v("Signal", "after getSignal");
-
 	}
 
 	@Override

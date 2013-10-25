@@ -1,47 +1,49 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="horizontal" >
 
     <LinearLayout
-        android:layout_width="540dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_weight="14"
         android:orientation="vertical" >
 
         <com.andrive.ui.OverlayedPreviewView
             android:id="@+id/main_overrayed_preview"
             android:layout_width="match_parent"
-            android:layout_height="240dp"
-            android:layout_margin="5dp" >
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_weight="95" >
         </com.andrive.ui.OverlayedPreviewView>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:orientation="horizontal" >
 
             <Button
                 android:id="@+id/sterring_bar"
                 android:layout_width="wrap_content"
-                android:layout_height="70dp"
-                android:layout_gravity="bottom|left"
-                android:layout_weight="0.38"
+                android:layout_height="match_parent"
+                android:layout_weight="98"
                 android:text="Sterring" />
 
             <com.andrive.ui.PitchHandle
                 android:id="@+id/main_pitch_ring"
                 android:layout_width="wrap_content"
-                android:layout_height="70dp"
-                android:gravity="bottom|right" >
+                android:layout_height="wrap_content" >
 
             </com.andrive.ui.PitchHandle>
-            
         </LinearLayout>
     </LinearLayout>
 
     <Button
         android:id="@+id/speed_bar"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_weight="86"
         android:text="Acc/Brake" />
 
 </LinearLayout>

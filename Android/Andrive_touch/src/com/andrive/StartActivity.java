@@ -15,8 +15,8 @@ import android.widget.TextView;
 public class StartActivity extends Activity {
 	private final static int WC = LinearLayout.LayoutParams.WRAP_CONTENT;
 	private final static int FP = LinearLayout.LayoutParams.FILL_PARENT;
-	private EditText addressText;
-	private EditText portText;
+	private EditText addressTextOfSignal, addressTextOfPicture;
+	private EditText portTextOfSignal, portTextOfPicture;
 	private TextView textView;
 	/** Called when the activity is first created. */
 	@Override
@@ -28,29 +28,58 @@ public class StartActivity extends Activity {
 		layout.setOrientation(LinearLayout.VERTICAL);
 		setContentView(layout);
 
+		// get address and port(Signal)
 		textView = new TextView(this);
-		textView.setText("IP-address");
+		textView.setText("IP-address(Signal)");
 		textView.setTextColor(Color.rgb(0, 0, 0));
 		textView.setLayoutParams(new LinearLayout.LayoutParams(WC, WC));
 		layout.addView(textView);
 
+		//String address = "192.168.";
 		String address = "";
-		addressText = new EditText(this);
-		addressText.setText(address);
-		addressText.setLayoutParams(new LinearLayout.LayoutParams(FP, WC));
-		layout.addView(addressText);
+
+		addressTextOfSignal = new EditText(this);
+		addressTextOfSignal.setText(address);
+		addressTextOfSignal.setLayoutParams(new LinearLayout.LayoutParams(FP, WC));
+		layout.addView(addressTextOfSignal);
 
 		textView = new TextView(this);
-		textView.setText("Port number");
+		textView.setText("Port number(Signal)");
 		textView.setTextColor(Color.rgb(0, 0, 0));
 		textView.setLayoutParams(new LinearLayout.LayoutParams(WC, WC));
 		layout.addView(textView);
 
-		String port = "";
-		portText = new EditText(this);
-		portText.setText(port);
-		portText.setLayoutParams(new LinearLayout.LayoutParams(FP, WC));
-		layout.addView(portText);
+		String port = "12335";
+		portTextOfSignal = new EditText(this);
+		portTextOfSignal.setText(port);
+		portTextOfSignal.setLayoutParams(new LinearLayout.LayoutParams(FP, WC));
+		layout.addView(portTextOfSignal);
+		
+		textView = new TextView(this);
+		textView.setText("IP-address(Picture)");
+		textView.setTextColor(Color.rgb(0, 0, 0));
+		textView.setLayoutParams(new LinearLayout.LayoutParams(WC, WC));
+		layout.addView(textView);
+
+		// get address and port(Picture)
+		addressTextOfPicture = new EditText(this);
+		addressTextOfPicture.setText(address);
+		addressTextOfPicture.setLayoutParams(new LinearLayout.LayoutParams(FP, WC));
+		layout.addView(addressTextOfPicture);
+
+		port = "12336";
+		textView = new TextView(this);
+		textView.setText("Port number(Picture)");
+		textView.setTextColor(Color.rgb(0, 0, 0));
+		textView.setLayoutParams(new LinearLayout.LayoutParams(WC, WC));
+		layout.addView(textView);
+
+		portTextOfPicture = new EditText(this);
+		portTextOfPicture.setText(port);
+		portTextOfPicture.setLayoutParams(new LinearLayout.LayoutParams(FP, WC));
+		layout.addView(portTextOfPicture);
+		
+		
 
 		Button btn = new Button(this);
 		btn.setText("GetControl");
@@ -65,8 +94,12 @@ public class StartActivity extends Activity {
 		public void onClick(View v) {
 			Log.v("StartActivity","clicked \"get connect\" button");
 			Intent intent = new Intent(getApplication(), GetSensorValues.class);
-			intent.putExtra("address", addressText.getText().toString());
-			intent.putExtra("port", portText.getText().toString());
+			intent.putExtra("addressOfSignal", addressTextOfSignal.getText().toString());
+			intent.putExtra("addressOfPicture", addressTextOfPicture.getText().toString());
+
+			intent.putExtra("portOfSignal", portTextOfSignal.getText().toString());
+			intent.putExtra("portOfPicture", portTextOfPicture.getText().toString());
+
 			startActivityForResult(intent, 0);
 		}
 	};
