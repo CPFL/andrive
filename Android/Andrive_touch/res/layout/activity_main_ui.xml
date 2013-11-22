@@ -6,7 +6,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="14"
+        android:layout_weight="0.14"
         android:orientation="vertical" >
 
         <com.andrive.ui.OverlayedPreviewView
@@ -20,21 +20,36 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
             android:orientation="horizontal" >
 
             <Button
-                android:id="@+id/sterring_bar"
+                android:id="@+id/steering_left_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_weight="98"
-                android:text="Sterring" />
+                android:layout_weight="0.45"
+                android:text="Left" />
+
+            <Button
+                android:id="@+id/steering_right_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="0.45"
+                android:text="Right" />
+
+            <ToggleButton
+                android:id="@+id/PM_botton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="0.10"
+                android:checked="true"
+                android:textOff="P/M"
+                android:textOn="P/M" >
+            </ToggleButton>
 
             <com.andrive.ui.PitchHandle
                 android:id="@+id/main_pitch_ring"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
-
+                android:layout_height="match_parent" >
             </com.andrive.ui.PitchHandle>
         </LinearLayout>
     </LinearLayout>
@@ -43,7 +58,7 @@
         android:id="@+id/speed_bar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="86"
+        android:layout_weight="0.86"
         android:text="Acc/Brake" />
 
 </LinearLayout>

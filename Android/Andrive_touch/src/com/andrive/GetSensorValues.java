@@ -19,18 +19,21 @@ import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ProgressBar;
+import android.widget.ToggleButton;
 
 import com.andrive.ui.DrawView;
 import com.andrive.ui.OverlayedPreviewView;
 import com.andrive.ui.PitchHandle;
 
-public class GetSensorValues extends Activity implements OnTouchListener, SensorEventListener {
+public class GetSensorValues extends Activity implements OnTouchListener, SensorEventListener, OnCheckedChangeListener {
 	public String addressOfSignal, addressOfPicture;
 	public String portOfSignalText, portOfPictureText;
 	public int portOfSignal, portOfPicture;
 
-	private Button speedButton, sterringButton;
+	private Button speedButton, leftSteeringBotton, rightSteeringBotton;
 
 	private final static float FILTERING=0.1F;
 
@@ -48,11 +51,18 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 
 	//バーの割合
 	public float rate;
+
+	//トグルボタン(Program / Manual)
+	ToggleButton pmBotton;
+	// 1: Program, 0: Manual
+	public static int pmFlag = 1;
+
 	/*
 	 * to Server
 	 *	pitch, accel
 	 * */
-	private float accelerator, sterring;
+	public static float accelerator;
+	public static float sterring;
 	private float pitch;
 
 	// camera preview と overlay
@@ -119,17 +129,20 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		speedButton = (Button)this.findViewById(R.id.speed_bar);
 		speedButton.setOnTouchListener(this);
 
-		sterringButton = (Button)this.findViewById(R.id.sterring_bar);
-		sterringButton.setOnTouchListener(this);
+		leftSteeringBotton = (Button)this.findViewById(R.id.steering_left_bar);
+		leftSteeringBotton.setOnTouchListener(this);
 
-		sensorManager=(SensorManager)getSystemService(
-				Context.SENSOR_SERVICE);
+		rightSteeringBotton = (Button)this.findViewById(R.id.steering_right_bar);
+		rightSteeringBotton.setOnTouchListener(this);
 
-		List<Sensor> list;
-		list=sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
-		if (list.size()>0) accelerometer=list.get(0);
-		list=sensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
-		if (list.size()>0) orientation=list.get(0);
+		//		sensorManager=(SensorManager)getSystemService(
+		//				Context.SENSOR_SERVICE);
+		//
+		//		List<Sensor> list;
+		//		list=sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+		//		if (list.size()>0) accelerometer=list.get(0);
+		//		list=sensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
+		//		if (list.size()>0) orientation=list.get(0);
 
 
 		//プログレスバー
@@ -145,15 +158,19 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		pitchRing = (PitchHandle)findViewById(R.id.main_pitch_ring);
 		overrayedPreviewView = (OverlayedPreviewView)findViewById(R.id.main_overrayed_preview);
 
+		//トグルボタン
+		pmBotton = (ToggleButton) findViewById(R.id.PM_botton);
+		pmBotton.setOnCheckedChangeListener(this);
+
 
 		//サーバへ接続
 		GetSensorNative.connectServer(addressOfSignal, portOfSignal);
-		//GetSensorNative.connectServer(addressOfPicture, portOfPicture);
+		GetSensorNative.connectServer(addressOfPicture, portOfPicture);
 
 		//画像受信スレッド
 		backGroundThread = new BackGroundThread();
 		backGroundThread.setFlag(true);
-		//backGroundThread.start();
+		backGroundThread.start();
 
 		pitch = 0; 
 
@@ -177,15 +194,11 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 				// 指がタッチした時の処理を記述
 				accelerator = (50 - event.getY() / displayHeight * 100) * 2;
 				makePacket(1);
-
-				Log.v("speed", "" + accelerator);
 			}
 			else if(event.getAction() == MotionEvent.ACTION_MOVE) {
 				// 指がスライドした時の処理を記述
 				accelerator = (50 - event.getY() / displayHeight * 100) * 2;
 				makePacket(1);
-
-				Log.v("speed", "" + accelerator);
 			}
 			else {
 				// タッチした指が離れた時の処理を記述
@@ -196,39 +209,78 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 			}
 		}
 
-		//ステアリング
-		else if(v == sterringButton){
+		//ステアリング(left)
+		else if(v == leftSteeringBotton){
 			if(event.getAction() == MotionEvent.ACTION_DOWN) {
 				// 指がタッチした時の処理を記述
-				sterring = (float) (event.getX() / (displayWidth * 0.77) * 100 - 50);
+				sterring = (float) (100 - event.getX() / (displayWidth * 0.302) * 100);
 			}
 			else if(event.getAction() == MotionEvent.ACTION_MOVE) {
 				// 指がスライドした時の処理を記述
-				sterring = (float) (event.getX() / (displayWidth * 0.77) * 100 - 50);
-				Log.v("pitch", "" + (sterring/10) * (sterring/10) / 10);
-
+				sterring = (float) (100 - event.getX() / (displayWidth * 0.302) * 100);
 			}
 			else {
 				// タッチした指が離れた時の処理を記述
 				sterring = 0;
+				return true;
 			}
-			
-			if(sterring > 0)
-				pitch += (sterring/10) * (sterring/10) / 10;
+
+			//左ハンドルのためマイナス反転
+			if(sterring > 100)
+				sterring = 100;
 			else if(sterring < 0)
-				pitch -= (sterring/10) * (sterring/10) / 10;
-			
-			Log.v("pitch", "" + (sterring/10) * (sterring/10) / 10);
-			
-			if(pitch > 100)
-				pitch = 100;
-			else if(pitch < -100)
-				pitch = -100;
-			
-			pitchRing.rotate(-(float)(pitch * 1.6));	
+				sterring = 0;
+			if(sterring != 0)
+				sterring = -sterring;
+
+
+			//			if(sterring > 0)
+			//				pitch += (sterring/10) * (sterring/10) / 10;
+			//			else if(sterring < 0)
+			//				pitch -= (sterring/10) * (sterring/10) / 10;
+
+			//Log.v("pitch", "" + (sterring/10) * (sterring/10) / 10);
+
+			//			if(pitch > 100)
+			//				pitch = -100;
+
+
+			//相対値
+			//pitchRing.rotate(-(float)(pitch * 1.6));
+			//絶対値
+			pitchRing.rotate(-(float)(sterring * 1.6));
 			//Log.v("pitch", "" + pitch);
 			makePacket(2);				
 		}
+
+		else if(v == rightSteeringBotton){
+			if(event.getAction() == MotionEvent.ACTION_DOWN) {
+				// 指がタッチした時の処理を記述
+				sterring = (float) ((event.getX() - displayWidth * 0.302 ) / (displayWidth * 0.302) * 100 + 100);
+			}
+			else if(event.getAction() == MotionEvent.ACTION_MOVE) {
+				// 指がスライドした時の処理を記述
+				sterring = (float) ((event.getX() - displayWidth * 0.302 ) / (displayWidth * 0.302) * 100 + 100);
+			}
+			else {
+				// タッチした指が離れた時の処理を記述
+				sterring = 0;
+				return true;
+			}
+
+			if(sterring > 100)
+				sterring = 100;
+			else if(sterring < 0)
+				sterring = 0;
+
+			//相対値
+			//pitchRing.rotate(-(float)(pitch * 1.6));
+			//絶対値
+			pitchRing.rotate(-(float)(sterring * 1.6));
+			//Log.v("pitch", "" + pitch);
+			makePacket(2);		
+		}
+
 		return true;
 	}
 
@@ -240,26 +292,47 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 				progressBar2.setProgress(0);
 				if(accelerator > 100)
 					accelerator = 100;
-				GetSensorNative.sendSensorValue(pitch, accelerator, 0, overrayedPreviewView.getGearInNumber());
+				//相対値
+				//GetSensorNative.sendSensorValue(pitch, accelerator, 0, overrayedPreviewView.getGearInNumber(), pmFlag);
+				//Log.v("pitch", "" + pitch);
+				//絶対値
+				GetSensorNative.sendSensorValue(sterring, accelerator, 0, overrayedPreviewView.getGearInNumber(), pmFlag);
+				Log.v("sterring", "" + sterring);
+
 			}
 			else{
 				progressBar1.setProgress(0);
 				progressBar2.setProgress(-(int)accelerator);
-				GetSensorNative.sendSensorValue(pitch, 0, -accelerator, overrayedPreviewView.getGearInNumber());
+				//相対値
+				//GetSensorNative.sendSensorValue(pitch, 0, -accelerator, overrayedPreviewView.getGearInNumber(), pmFlag);
+				//Log.v("pitch", "" + pitch);
+				//絶対値
+				GetSensorNative.sendSensorValue(sterring, 0, -accelerator, overrayedPreviewView.getGearInNumber(), pmFlag);
+				Log.v("sterring", "" + sterring);
+
 			}
 			break;
 		case 2:
 			if(sterring > 0){
 				progressBar1.setProgress((int)accelerator);
 				progressBar2.setProgress(0);
-				if(sterring > 50)
-					sterring = 50;
-				GetSensorNative.sendSensorValue(pitch, accelerator, 0, overrayedPreviewView.getGearInNumber());
+
+				//相対値
+				//GetSensorNative.sendSensorValue(pitch, accelerator, 0, overrayedPreviewView.getGearInNumber(), pmFlag);
+				//Log.v("pitch", "" + pitch);
+				//絶対値
+				GetSensorNative.sendSensorValue(sterring, accelerator, 0, overrayedPreviewView.getGearInNumber(), pmFlag);
+				Log.v("sterring", "" + sterring);
 			}
 			else{
 				progressBar1.setProgress(0);
 				progressBar2.setProgress(-(int)accelerator);
-				GetSensorNative.sendSensorValue(pitch, 0, -accelerator, overrayedPreviewView.getGearInNumber());
+				//相対値
+				//GetSensorNative.sendSensorValue(pitch, 0, -accelerator, overrayedPreviewView.getGearInNumber(), pmFlag);
+				//Log.v("pitch", "" + pitch);
+				//絶対値
+				GetSensorNative.sendSensorValue(sterring, 0, -accelerator, overrayedPreviewView.getGearInNumber(), pmFlag);
+				Log.v("sterring", "" + sterring);
 			}
 			break;
 		}
@@ -311,11 +384,25 @@ public class GetSensorValues extends Activity implements OnTouchListener, Sensor
 		//		Log.v("Signal", "before sendSensorValue");
 		//		Log.v("onSensorChanged", text);
 
-		//GetSensorNative.sendSensorValue(pitch , accelerator, brake, overrayedPreviewView.getGearInNumber());
+		//GetSensorNative.sendSensorValue(pitch , accelerator, brake, overrayedPreviewView.getGearInNumber(), pmFlag);
 
 
 		//GetSensorNative.getSignal();
 		//Log.v("Signal", "after getSignal");
+	}
+
+	//pushed toggle button
+	@Override
+	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		if(isChecked){
+			Log.v("Toggle", "On");
+			pmFlag = 1;
+			GetSensorNative.sendSensorValue(sterring, accelerator, 0, overrayedPreviewView.getGearInNumber(), pmFlag);
+		}else{
+			Log.v("Toggle", "Off");
+			pmFlag = 0;
+			GetSensorNative.sendSensorValue(sterring, accelerator, 0, overrayedPreviewView.getGearInNumber(), pmFlag);
+		}
 	}
 
 	@Override

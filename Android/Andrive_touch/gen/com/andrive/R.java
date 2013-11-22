@@ -225,11 +225,12 @@ containing a value of this type.
         public static final int warning=0x7f020006;
     }
     public static final class id {
-        public static final int acc_bar=0x7f040021;
+        public static final int PM_botton=0x7f04001c;
+        public static final int acc_bar=0x7f040023;
         public static final int alignBounds=0x7f040002;
         public static final int alignMargins=0x7f040003;
         public static final int bottom=0x7f040005;
-        public static final int brake_bar=0x7f040023;
+        public static final int brake_bar=0x7f040025;
         public static final int center=0x7f04000c;
         public static final int center_horizontal=0x7f04000a;
         public static final int center_vertical=0x7f040008;
@@ -249,17 +250,18 @@ containing a value of this type.
         public static final int main_brake_progressbar=0x7f040017;
         public static final int main_overrayed_preview=0x7f040013;
         public static final int main_pitch_ring=0x7f040018;
-        public static final int menu_settings=0x7f040024;
-        public static final int preview_gear_box=0x7f04001d;
-        public static final int preview_gear_index=0x7f04001e;
-        public static final int preview_speed_textview=0x7f04001f;
-        public static final int preview_surface_view=0x7f04001c;
+        public static final int menu_settings=0x7f040026;
+        public static final int preview_gear_box=0x7f04001f;
+        public static final int preview_gear_index=0x7f040020;
+        public static final int preview_speed_textview=0x7f040021;
+        public static final int preview_surface_view=0x7f04001e;
         public static final int right=0x7f040007;
-        public static final int speed_bar=0x7f04001b;
+        public static final int speed_bar=0x7f04001d;
         public static final int start=0x7f040010;
-        public static final int sterring_bar=0x7f04001a;
-        public static final int textView1=0x7f040020;
-        public static final int textView2=0x7f040022;
+        public static final int steering_left_bar=0x7f04001a;
+        public static final int steering_right_bar=0x7f04001b;
+        public static final int textView1=0x7f040022;
+        public static final int textView2=0x7f040024;
         public static final int top=0x7f040004;
         public static final int vertical=0x7f040001;
     }

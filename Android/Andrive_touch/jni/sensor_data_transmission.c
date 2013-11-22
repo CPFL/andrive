@@ -48,16 +48,17 @@ JNIEXPORT void JNICALL Java_com_andrive_GetSensorNative_closeConnect(JNIEnv * en
 }
 
 
-JNIEXPORT void JNICALL Java_com_andrive_GetSensorNative_sendSensorValue(JNIEnv * env,jobject thiz, float pitch, float accelerator, float brake, jint gearNum){
+JNIEXPORT void JNICALL Java_com_andrive_GetSensorNative_sendSensorValue(JNIEnv * env,jobject thiz, float pitch, float accelerator, float brake, jint gearNum, jint pmFlag){
 
-	int sensorInfo[4];
+	int sensorInfo[5];
 
 	sensorInfo[0] = (int)pitch;
 	sensorInfo[1] = (int)accelerator;
 	sensorInfo[2] = (int)brake;
 	sensorInfo[3] = gearNum;
+	sensorInfo[4] = pmFlag;
 
-	send(sock1, &sensorInfo, sizeof(pitch)*4, 0);
+    send(sock1, &sensorInfo, sizeof(pitch)*5, 0);
 
 }
 
@@ -95,21 +96,21 @@ JNIEXPORT jstring JNICALL Java_com_andrive_GetSensorNative_getPhoto(JNIEnv * env
 }
 
 void setPicture(unsigned char *buf, int sum){
-    FILE *fpw;
-    char *fname_w = "/mnt/sdcard/";
-    int i, size;
-    char file_name[32];
+	FILE *fpw;
+	char *fname_w = "/mnt/sdcard/";
+	int i, size;
+	char file_name[32];
 
-    //sprintf(file_name,"%s%02d:%02d:%02d:%3d.jpg",fname_w, tmptr->tm_hour, tmptr->tm_min, tmptr->tm_sec, tv.tv_usec/1000);
-    sprintf(file_name,"%s%s.jpg",fname_w, "recieve");
+	//sprintf(file_name,"%s%02d:%02d:%02d:%3d.jpg",fname_w, tmptr->tm_hour, tmptr->tm_min, tmptr->tm_sec, tv.tv_usec/1000);
+	sprintf(file_name,"%s%s.jpg",fname_w, "recieve");
 
-    fpw = fopen( file_name, "wb" );
-    if( fpw == NULL ){
-            printf( "書込用 %sファイルが開けません\n", fname_w );
-            return;
-    }
+	fpw = fopen( file_name, "wb" );
+	if( fpw == NULL ){
+		printf( "譖ｸ霎ｼ逕ｨ %s繝輔ぃ繧､繝ｫ縺碁幕縺代∪縺帙ｓ\n", fname_w );
+		return;
+	}
 
-    fwrite( buf, sizeof( unsigned char ), sum, fpw );
+	fwrite( buf, sizeof( unsigned char ), sum, fpw );
 
-    fclose( fpw );
+	fclose( fpw );
 }

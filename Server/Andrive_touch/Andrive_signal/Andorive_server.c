@@ -72,13 +72,13 @@ void getConnect(void){
 }
 
 int getSensorValue(){
-	int sensorInfo[4];
-	if(recv(sock_num, &sensorInfo, 16, 0) == -1){
+	int sensorInfo[5];
+	if(recv(sock_num, &sensorInfo, 20, 0) == -1){
 		printf("ERROR: can not recieve message\n");
 		return -1;
 	}
 
-	printf("pitch: %d, accelerator: %d, brake %d, gearNum: %d\n", sensorInfo[0], sensorInfo[1], sensorInfo[2], sensorInfo[3]);
+	printf("pitch: %d, accelerator: %d, brake %d, gearNum: %d, P/M: %d\n", sensorInfo[0], sensorInfo[1], sensorInfo[2], sensorInfo[3], sensorInfo[4]);
 
 	/*
 	 * ギアボックス

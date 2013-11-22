@@ -1,5 +1,5 @@
-/Users/messi/Documents/workspace/Andrive/obj/local/armeabi/objs/sensordatatransmission/sensor_data_transmission.o: \
- /Users/messi/Documents/workspace/Andrive/jni/sensor_data_transmission.c \
+/Users/messi/Documents/workspace/Andrive_touch/obj/local/armeabi/objs/sensordatatransmission/sensor_data_transmission.o: \
+ /Users/messi/Documents/workspace/Andrive_touch/jni/sensor_data_transmission.c \
  /Applications/Android-NDK/platforms/android-14/arch-arm/usr/include/jni.h \
  /Applications/Android-NDK/platforms/android-14/arch-arm/usr/include/android/log.h \
  /Applications/Android-NDK/platforms/android-14/arch-arm/usr/include/stdio.h \

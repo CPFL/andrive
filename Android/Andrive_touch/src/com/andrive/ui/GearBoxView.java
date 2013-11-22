@@ -15,6 +15,8 @@ import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.andrive.GetSensorNative;
+import com.andrive.GetSensorValues;
 import com.andrive.R;
 
 public class GearBoxView extends FrameLayout implements OnTouchListener {
@@ -163,7 +165,8 @@ public class GearBoxView extends FrameLayout implements OnTouchListener {
     		invalidate();
     		return true;
     	}
-    	
+    	//gear change
+		GetSensorNative.sendSensorValue(GetSensorValues.sterring, GetSensorValues.accelerator, 0, getGearInNumber(), GetSensorValues.pmFlag);
     	return false;	
     }
     
