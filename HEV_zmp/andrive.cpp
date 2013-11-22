@@ -10,13 +10,15 @@
 #include "timeval_ops.h"
 
 #define DEBUG_PRINT 0
+#define ANDRV_MODE_MANUAL 0
+#define ANDRV_MODE_PROGRAM 1
 
-void andrvGetConnect(void);
-int andrvGetSensorValue(void);
-int andrvSendSignal(void);
-void* andrvThreadEntry(void* arg);
-
-double control_steering(double setpoint, double val, double dt);
+void __andrvConnect(void);
+void __andrvChangeMode(void*, int);
+int __andrvGetSensorValue(void);
+int __andrvSendSignal(void);
+double __andrvControlSteering(double setpoint, double val, double dt);
+//void* andrvThreadEntry(void* arg);
 
 int sock_num;
 int sock0;
@@ -34,23 +36,28 @@ void MainWindow::andrvActivate(void)
   struct timeval time;
   int pre_pitch = 0;
 
-  printf("Andrive activated!\n");
+  printf("Andrive activated\n");
   pthread_create(&__andrvThread, NULL, andrvThreadEntry, hev);
 
-  andrvGetConnect();
-  printf("andrvGetConnect()\n");
+  __andrvConnect();
+  printf("Andrive connected\n");
+
+  __andrvChangeMode(hev, ANDRV_MODE_PROGRAM);
+  printf("Andrive controlled\n");
 
   pitch = 0;
   accelerator = 0;
   brake = 0;
   steering = 0;
   while(1) {
-    if(andrvGetSensorValue() == -1) {
-      printf("andrvGetSensorValue() failed\n");
+    if(__andrvGetSensorValue() == -1) {
+      printf("Sensing failed\n");
+      __andrvChangeMode(hev, ANDRV_MODE_MANUAL);
+      printf("Andrive fallbacked\n");
       break;
     }
-    if(andrvSendSignal() == -1) {
-      printf("andrvSendSignal() failed\n");
+    if(__andrvSendSignal() == -1) {
+      printf("Signal failed\n");
       break;
     }
 
@@ -94,7 +101,7 @@ void* MainWindow::andrvThreadEntry(void* arg)
     dt = timeval_to_us(&tv_dt);
 
     // steering
-    local_steering = control_steering(steering, local_steering, dt);
+    local_steering = __andrvControlSteering(steering, local_steering, dt);
     hev->SetStrAngle(steering);
     
     // brake
@@ -118,9 +125,9 @@ void* MainWindow::andrvThreadEntry(void* arg)
   return NULL;
 }
 
-double control_steering(double setpoint, double val, double dt)
+double __andrvControlSteering(double setpoint, double val, double dt)
 {
-#define KP 0.001
+#define KP 0.0001
 #define KI 0.0001
 #define KD 0.0005
   static double e_p = 0, i_p = 0, setpoint_p = 0;
@@ -147,7 +154,7 @@ double control_steering(double setpoint, double val, double dt)
   return val + delta;
 }
 
-void andrvGetConnect(void)
+void __andrvConnect(void)
 {
   struct sockaddr_in addr;
   struct sockaddr_in client;
@@ -174,7 +181,30 @@ void andrvGetConnect(void)
   sock_num = sock;
 }
 
-int andrvGetSensorValue(void)
+void __andrvChangeMode(void* p, int mode)
+{
+  HevCnt* hev = (HevCnt*)p;  
+
+  switch (mode) {
+  case ANDRV_MODE_PROGRAM:
+    hev->SetDrvMode(MODE_PROGRAM);
+    hev->SetStrMode(MODE_PROGRAM);
+    hev->SetDrvServo(0x10);
+    hev->SetStrServo(0x10);
+    break;
+  case ANDRV_MODE_MANUAL:
+    usleep(1000);
+    hev->SetDrvServo(0x00);
+    hev->SetStrServo(0x00);
+    hev->SetDrvMode(MODE_MANUAL);
+    hev->SetStrMode(MODE_MANUAL);
+    break;
+  default:
+    printf("Unknown mode\n");
+  }
+}
+
+int __andrvGetSensorValue(void)
 {
   int sensorInfo[4];
   //float sensorInfo[4];
@@ -221,7 +251,7 @@ int andrvGetSensorValue(void)
   return 0;
 }
 
-int andrvSendSignal(void)
+int __andrvSendSignal(void)
 {
   int signal = 0;
   
